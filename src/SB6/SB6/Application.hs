@@ -162,7 +162,14 @@ closeCB theApp state = do
   when gma leaveGameMode
   displayCallback $= return ()
   closeCallback $= Nothing
-  ifFreeGLUT leaveMainLoop exitSuccess
+  -- Exiting is a bit tricky due to a freeglut bug: leaveMainLoop just sets a
+  -- flag that the next iteration of the main loop should exit, but the current
+  -- iteration will handle all events first and then go to sleep until there is
+  -- something to do. This means that a simple leaveMainLoop alone won't work,
+  -- even if we add some work which can be done immediately. So as a workaround,
+  -- we register a timer callback which never gets called (but we nevertheless
+  -- have to sleep for that time). Ugly!
+  ifFreeGLUT (do leaveMainLoop; addTimerCallback 10 (return ())) exitSuccess
 
 ifFreeGLUT :: IO () -> IO () -> IO ()
 ifFreeGLUT freeGLUTAction otherAction = do
