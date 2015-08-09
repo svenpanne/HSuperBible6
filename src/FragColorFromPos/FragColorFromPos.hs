@@ -3,9 +3,6 @@
 
 module Main ( main ) where
 
-import Foreign.Marshal.Array ( withArray )
-import Graphics.Rendering.OpenGL
-import Graphics.Rendering.OpenGL.Raw.Core42 ( glClearBufferfv, gl_COLOR )
 import SB6
 
 -- TODO: Use commandline argument or key callback?
@@ -94,8 +91,7 @@ startup = do
 
 render :: State -> Double -> IO ()
 render state _currentTime = do
-  withArray [ 0, 0.25, 0, 1 ] $
-    glClearBufferfv gl_COLOR 0
+  clearBuffer $ ClearColorBufferFloat 0 (Color4 0 0.25 0 1)
 
   currentProgram $= Just (program state)
   drawArrays Triangles 0 3

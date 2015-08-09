@@ -3,10 +3,6 @@
 
 module Main ( main ) where
 
-import Foreign.Marshal.Array ( withArray )
-import Graphics.Rendering.OpenGL
-import Graphics.Rendering.OpenGL.Raw.Core41 (
-  glClearBufferfv, gl_COLOR, glVertexAttrib4fv )
 import SB6
 
 data State = State
@@ -63,16 +59,15 @@ startup = do
 
 render :: State -> Double -> IO ()
 render state currentTime = do
-  withArray [ 0, 0.25, 0, 1 ] $
-    glClearBufferfv gl_COLOR 0
+  clearBuffer $ ClearColorBufferFloat 0 (Color4 0 0.25 0 1)
 
   currentProgram $= Just (program state)
 
-  withArray [ realToFrac (sin currentTime) * 0.5
-            , realToFrac (cos currentTime) * 0.6
-            , 0
-            , 0 ] $
-    glVertexAttrib4fv 0
+  let attrib = Vertex4 (realToFrac (sin currentTime) * 0.5)
+                       (realToFrac (cos currentTime) * 0.6)
+                       0
+                       0 :: Vertex4 GLfloat
+  vertexAttrib ToFloat (AttribLocation 0) attrib
 
   drawArrays Triangles 0 3
 

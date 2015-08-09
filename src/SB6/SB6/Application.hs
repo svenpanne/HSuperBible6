@@ -54,7 +54,7 @@ data AppInfo = AppInfo
   { title :: String
   , windowSize :: Size
   , version :: (Int, Int)
-  , samples :: Int
+  , numSamples :: Int  -- renamed from 'samples' to avoid a clash with OpenGL
   , fullscreen :: Bool
   , vsync :: Bool
   , cursor :: Bool
@@ -71,7 +71,7 @@ appInfo = AppInfo
 #else
   , version = (4, 3)
 #endif
-  , SB6.Application.samples = 0
+  , numSamples = 0
   , fullscreen  = False
   , vsync  = False
   , SB6.Application.cursor  = True
@@ -96,7 +96,7 @@ run theApp = do
       height (Size _ h) = h
   initialDisplayMode $=
     [ RGBAMode, WithDepthBuffer, DoubleBuffered ] ++
-    numOpt WithSamplesPerPixel SB6.Application.samples ++
+    numOpt WithSamplesPerPixel numSamples ++
     opt Stereoscopic SB6.Application.stereo
   initialContextVersion $= version theAppInfo
   initialContextProfile $= [ CoreProfile ]
