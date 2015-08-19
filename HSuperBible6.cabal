@@ -24,14 +24,14 @@ library
   other-modules:
     SB6.DataType
   build-depends:
-    array      >= 0.1 && < 0.6,
-    base       >= 3   && < 5,
-    binary     >= 0.5 && < 0.8,
-    bytestring >= 0.9 && < 0.11,
-    time       >= 1.0 && < 1.6,
-    GLUT,
-    OpenGL     >= 2.12.1,
-    OpenGLRaw
+    array      >= 0.1  && < 0.6,
+    base       >= 3    && < 5,
+    binary     >= 0.5  && < 0.8,
+    bytestring >= 0.9  && < 0.11,
+    time       >= 1.0  && < 1.6,
+    GLUT       >= 2.7  && < 2.8,
+    OpenGL     >= 2.13 && < 2.14,
+    OpenGLRaw  >= 2.5  && < 2.6
   hs-source-dirs: src/SB6
   default-language: Haskell2010
   ghc-options: -Wall
@@ -51,49 +51,49 @@ library
 
 executable SimpleClear
   main-is: SimpleClear.hs
-  build-depends: base >= 3 && < 5, HSuperBible6, OpenGLRaw
+  build-depends: base >= 3 && < 5, HSuperBible6
   hs-source-dirs: src/SimpleClear
   default-language: Haskell2010
   ghc-options: -Wall
 
 executable SinglePoint
   main-is: SinglePoint.hs
-  build-depends: base >= 3 && < 5, HSuperBible6, OpenGL >= 2.11, OpenGLRaw
+  build-depends: base >= 3 && < 5, HSuperBible6
   hs-source-dirs: src/SinglePoint
   default-language: Haskell2010
   ghc-options: -Wall
 
 executable SingleTri
   main-is: SingleTri.hs
-  build-depends: base >= 3 && < 5, HSuperBible6, OpenGL >= 2.11, OpenGLRaw
+  build-depends: base >= 3 && < 5, HSuperBible6
   hs-source-dirs: src/SingleTri
   default-language: Haskell2010
   ghc-options: -Wall
 
 executable MovingTri
   main-is: MovingTri.hs
-  build-depends: base >= 3 && < 5, HSuperBible6, OpenGL >= 2.11, OpenGLRaw
+  build-depends: base >= 3 && < 5, HSuperBible6
   hs-source-dirs: src/MovingTri
   default-language: Haskell2010
   ghc-options: -Wall
 
 executable TessellatedTri
   main-is: TessellatedTri.hs
-  build-depends: base >= 3 && < 5, HSuperBible6, OpenGL >= 2.11, OpenGLRaw
+  build-depends: base >= 3 && < 5, HSuperBible6
   hs-source-dirs: src/TessellatedTri
   default-language: Haskell2010
   ghc-options: -Wall
 
 executable TessellatedGSTri
   main-is: TessellatedGSTri.hs
-  build-depends: base >= 3 && < 5, HSuperBible6, OpenGL >= 2.11, OpenGLRaw
+  build-depends: base >= 3 && < 5, HSuperBible6
   hs-source-dirs: src/TessellatedGSTri
   default-language: Haskell2010
   ghc-options: -Wall
 
 executable FragColorFromPos
   main-is: FragColorFromPos.hs
-  build-depends: base >= 3 && < 5, HSuperBible6, OpenGL >= 2.11, OpenGLRaw
+  build-depends: base >= 3 && < 5, HSuperBible6
   hs-source-dirs: src/FragColorFromPos
   default-language: Haskell2010
   ghc-options: -Wall
