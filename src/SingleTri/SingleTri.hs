@@ -46,7 +46,6 @@ startup = do
   compileShader vs
 
   mapM_ (attachShader theProgram) [ vs, fs ]
-
   linkProgram theProgram
 
   theVao <- genObjectName

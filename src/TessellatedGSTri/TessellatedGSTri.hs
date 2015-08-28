@@ -101,7 +101,6 @@ startup = do
   compileShader fs
 
   mapM_ (attachShader theProgram) [ vs, tcs, tes, gs, fs ]
-
   linkProgram theProgram
 
   deleteObjectNames [ vs, tcs, tes, gs, fs ]
@@ -116,9 +115,7 @@ render state _currentTime = do
   clearBuffer $ ClearColorBufferFloat 0 (Color4 0 0.25 0 1)
 
   currentProgram $= Just (program state)
-
   pointSize $= 5
-
   drawArrays Patches 0 3
 
 shutdown :: State -> IO ()

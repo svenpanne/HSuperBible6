@@ -49,7 +49,6 @@ startup = do
   compileShader vs
 
   mapM_ (attachShader theProgram) [ vs, fs ]
-
   linkProgram theProgram
 
   theVao <- genObjectName
@@ -62,13 +61,11 @@ render state currentTime = do
   clearBuffer $ ClearColorBufferFloat 0 (Color4 0 0.25 0 1)
 
   currentProgram $= Just (program state)
-
   let attrib = Vertex4 (realToFrac (sin currentTime) * 0.5)
                        (realToFrac (cos currentTime) * 0.6)
                        0
                        0 :: Vertex4 GLfloat
   vertexAttrib ToFloat (AttribLocation 0) attrib
-
   drawArrays Triangles 0 3
 
 shutdown :: State -> IO ()

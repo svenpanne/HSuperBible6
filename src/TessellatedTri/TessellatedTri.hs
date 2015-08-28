@@ -81,7 +81,6 @@ startup = do
   compileShader fs
 
   mapM_ (attachShader theProgram) [ vs, tcs, tes, fs ]
-
   linkProgram theProgram
 
   theVao <- genObjectName
@@ -96,7 +95,6 @@ render state _currentTime = do
   clearBuffer $ ClearColorBufferFloat 0 (Color4 0 0.25 0 1)
 
   currentProgram $= Just (program state)
-
   drawArrays Patches 0 3
 
 shutdown :: State -> IO ()
