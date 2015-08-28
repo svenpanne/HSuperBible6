@@ -2,7 +2,8 @@
 module SB6.Application (
   Application(..), app,
   AppInfo(..), appInfo,
-  run
+  run,
+  extensionSupported
 ) where
 
 import Control.Monad ( when, unless, void )
