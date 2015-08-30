@@ -6,19 +6,36 @@ module SB6.Application (
   extensionSupported
 ) where
 
-import Control.Monad ( when, unless, void )
-#if DEBUG
-import Control.Monad ( forM_ )
+#if !MIN_VERSION_base(4,8,0)
+import Control.Applicative( (<$>) )
 #endif
+import Control.Monad ( forM_, when, unless, void )
+import Control.Monad.Trans.Reader ( local )
 import Data.List ( isPrefixOf )
 import Data.Time.Clock ( UTCTime, diffUTCTime, getCurrentTime )
 import Foreign.C.Types
 import Foreign.Ptr ( FunPtr, nullFunPtr )
+import Options.Applicative
+import Options.Applicative.Types ( ReadM(..), readerAsk )
 import System.Exit ( exitSuccess )
 import System.IO ( hPutStrLn, stderr )
+import System.Info ( os )
 
 import Graphics.UI.GLUT as GLUT
 import Graphics.Rendering.OpenGL.Raw ( getProcAddress )
+
+--------------------------------------------------------------------------------
+
+#if !MIN_VERSION_base(4,5,0)
+import Data.Monoid ( Monoid )
+
+infixr 6 <>
+
+-- | An infix synonym for 'mappend'.
+(<>) :: Monoid m => m -> m -> m
+(<>) = mappend
+{-# INLINE (<>) #-}
+#endif
 
 --------------------------------------------------------------------------------
 
@@ -75,22 +92,14 @@ data AppInfo = AppInfo
 appInfo :: AppInfo
 appInfo = AppInfo
   { title = "SuperBible6 Example"
-  ,  SB6.Application.windowSize  = Size 800 600
-#if OS_DARWIN
-  , version = (3, 2)
-#else
-  , version = (4, 3)
-#endif
+  , SB6.Application.windowSize  = Size 800 600
+  , version = if os `elem` [ "darwin", "osx" ] then (3, 2) else (4, 3)
   , numSamples = 0
   , fullscreen  = False
   , vsync  = False
   , SB6.Application.cursor  = True
   , SB6.Application.stereo  = False
-#if DEBUG
-  , debug  = True
-#else
   , debug  = False
-#endif
   }
 
 --------------------------------------------------------------------------------
@@ -98,8 +107,8 @@ appInfo = AppInfo
 run :: Application s -> IO ()
 run theApp = do
   startTime <- getCurrentTime
-  void getArgsAndInitialize
-  theAppInfo <- SB6.Application.init theApp
+  (_progName, args) <- getArgsAndInitialize
+  theAppInfo <- handleArgs args =<< SB6.Application.init theApp
   let numOpt f fld = opt (f . fromIntegral . fld $ theAppInfo) ((> 0) . fld)
       opt val predicate = if predicate theAppInfo then [ val ] else []
       width (Size w _) = w
@@ -110,10 +119,7 @@ run theApp = do
     opt Stereoscopic SB6.Application.stereo
   initialContextVersion $= version theAppInfo
   initialContextProfile $= [ CoreProfile ]
-  initialContextFlags $= [ ForwardCompatibleContext ]
-#if DEBUG
-    ++ [ DebugContext ]
-#endif
+  initialContextFlags $= [ ForwardCompatibleContext ] ++ opt DebugContext debug
   if fullscreen theAppInfo
     then do
       gameModeCapabilities $=
@@ -128,13 +134,13 @@ run theApp = do
   unless (SB6.Application.cursor theAppInfo) (GLUT.cursor $= None)
   swapInterval $ if vsync theAppInfo then 1 else 0
 
-#if DEBUG
-  forM_ [ ("VENDOR", vendor),
-          ("VERSION", glVersion),
-          ("RENDERER", renderer) ] $ \(name, var) -> do
-    val <- get var
-    hPutStrLn stderr (name ++ ": " ++ val)
-#endif
+  when (debug theAppInfo) $
+    forM_ [ ("VENDOR", vendor),
+            ("VERSION", glVersion),
+            ("RENDERER", renderer) ] $ \(name, var) -> do
+      val <- get var
+      hPutStrLn stderr (name ++ ": " ++ val)
+
   state <- startup theApp
 
   displayCallback $= displayCB theApp state startTime
@@ -212,3 +218,70 @@ foreign import CALLCONV "dynamic" makeSwapInterval
   :: FunPtr (CInt -> IO CInt)
   ->         CInt -> IO CInt
 #endif
+
+--------------------------------------------------------------------------------
+-- Commandline handling: Not in the original code, but very convenient.
+
+handleArgs :: [String] -> AppInfo -> IO AppInfo
+handleArgs args theAppInfo =
+  handleParseResult $ execParserPure (prefs idm) opts args
+  where opts = info (helper <*> parseWith theAppInfo) fullDesc
+
+parseWith :: AppInfo -> Parser AppInfo
+parseWith theAppInfo = AppInfo
+  <$> strOption (long "title"
+              <> metavar "TITLE"
+              <> defaultValueWith show title
+              <> help "Set window title")
+  <*> option (pair Size nonNegative 'x' nonNegative)
+             (long "window-size"
+           <> metavar "WxH"
+           <> defaultValueWith showSize SB6.Application.windowSize
+           <> help "Set window size")
+  <*> option (pair (,) nonNegative '.' nonNegative)
+             (long "version"
+           <> metavar "MAJOR.MINOR"
+           <> defaultValueWith showVersion version
+           <> help "Set OpenGL version to use")
+  <*> option nonNegative (long "num-samples"
+                       <> metavar "N"
+                       <> defaultValueWith show numSamples
+                       <> help "Control multisampling, 0 = none")
+  <*> boolOption "fullscreen" fullscreen "full screen mode"
+  <*> boolOption "vsync" vsync "vertical synchronization"
+  <*> boolOption "cursor" SB6.Application.cursor "cursor"
+  <*> boolOption "stereo" SB6.Application.stereo "stereoscopic mode"
+  <*> boolOption "debug" debug "debugging features"
+  where defaultValueWith s proj = value (proj theAppInfo) <> showDefaultWith s
+        showSize (Size w h) = show w ++ "x" ++ show h
+        showVersion (major, minor) = show major ++ "." ++ show minor
+        boolOption longName proj what =
+          option boolean (long longName
+                       <> metavar "BOOL"
+                       <> defaultValueWith show proj
+                       <> help ("Enable " ++ what))
+
+pair :: (a -> b -> c) -> ReadM a -> Char -> ReadM b -> ReadM c
+pair p r1 sep r2 = do
+  s <- readerAsk
+  case break (== sep) s of
+    (x, (_:y)) -> p <$> localM (const x) r1 <*> localM (const y) r2
+    _ -> readerError $ "missing separator " ++ show [sep]
+  where localM f = ReadM . local f . unReadM
+
+nonNegative :: (Read a, Show a, Integral a) => ReadM a
+nonNegative = do
+  s <- readerAsk
+  case reads s of
+    [(i, "")]
+      | i >= 0 -> return i
+      | otherwise -> readerError $ show i ++ " is negative"
+    _ -> readerError $ show s ++ " is not an integer"
+
+boolean :: ReadM Bool
+boolean = do
+  s <- readerAsk
+  case () of
+    _ | s `elem` [ "0", "f", "F", "false", "FALSE", "False" ] ->  return False
+      | s `elem` [ "1", "t", "T", "true", "TRUE", "True" ] -> return True
+      | otherwise -> readerError $ show s ++ " is not a boolean"
