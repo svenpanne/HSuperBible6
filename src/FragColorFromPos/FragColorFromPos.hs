@@ -3,14 +3,16 @@
 
 module Main ( main ) where
 
+import Data.IORef ( IORef, newIORef )
 import SB6
 
--- TODO: Use commandline argument or key callback?
-interpolateColor :: Bool
-interpolateColor = True
-
+-- Note that we deviate a bit from the book: We use a key callback to toggle
+-- (via the 'm' key) between the 2 shader programs instead of making this a
+-- compile-time decision.
 data State = State
-  { program :: Program
+  { interpolate :: IORef Bool
+  , programPos :: Program
+  , programInterpolate :: Program
   , vao :: VertexArrayObject
   }
 
@@ -19,7 +21,7 @@ init = return $ appInfo { title = "OpenGL SuperBible - Simple Triangle" }
 
 startup :: IO State
 startup = do
-  let vs_source = unlines
+  let vs_source_pos = unlines
         [ "#version 420 core                                                          "
         , "                                                                           "
         , "void main(void)                                                            "
@@ -30,7 +32,7 @@ startup = do
         , "                                                                           "
         , "    gl_Position = vertices[gl_VertexID];                                   "
         , "}                                                                          " ]
-      fs_source = unlines
+      fs_source_pos = unlines
         [ "#version 420 core                                                          "
         , "                                                                           "
         , "out vec4 color;                                                            "
@@ -69,36 +71,55 @@ startup = do
         , "    color = vs_color;                                                      "
         , "}                                                                          " ]
 
-  theProgram <- createProgram
-  fs <- createShader FragmentShader
-  shaderSourceBS fs $=
-    packUtf8 (if interpolateColor then fs_source_interpolate else fs_source)
-  compileShader fs
-
-  vs <- createShader VertexShader
-  shaderSourceBS vs $=
-    packUtf8 (if interpolateColor then vs_source_interpolate else vs_source)
-  compileShader vs
-
-  mapM_ (attachShader theProgram) [ vs, fs ]
-  linkProgram theProgram
+  theProgramInterpolate <-
+    compileAndLink fs_source_interpolate vs_source_interpolate
+  theProgramPos <- compileAndLink fs_source_pos vs_source_pos
 
   theVao <- genObjectName
   bindVertexArrayObject $= Just theVao
 
-  return $ State { program = theProgram, vao = theVao }
+  theInterpolate <- newIORef True
+  return $ State
+    { interpolate = theInterpolate
+    , programPos = theProgramPos
+    , programInterpolate = theProgramInterpolate
+    , vao = theVao
+    }
+
+compileAndLink :: String -> String -> IO Program
+compileAndLink fs_source vs_source = do
+  theProgram <- createProgram
+
+  fs <- createShader FragmentShader
+  shaderSourceBS fs $= packUtf8 fs_source
+  compileShader fs
+
+  vs <- createShader VertexShader
+  shaderSourceBS vs $= packUtf8 vs_source
+  compileShader vs
+
+  mapM_ (attachShader theProgram) [ vs, fs ]
+  linkProgram theProgram
+  return theProgram
+
+-- TODO: Perhaps we should return the state to get rid of the IORef?
+onKey :: State -> Either SpecialKey Char -> KeyState -> IO ()
+onKey state (Right 'm') Down = interpolate state $~! not
+onKey _ _ _ = return ()
 
 render :: State -> Double -> IO ()
 render state _currentTime = do
   clearBuffer $ ClearColorBufferFloat 0 (Color4 0 0.25 0 1)
 
-  currentProgram $= Just (program state)
+  i <- get (interpolate state)
+  currentProgram $= Just ((if i then programInterpolate else programPos) state)
   drawArrays Triangles 0 3
 
 shutdown :: State -> IO ()
 shutdown state = do
   deleteObjectName $ vao state
-  deleteObjectName $ program state
+  deleteObjectName $ programPos state
+  deleteObjectName $ programInterpolate state
 
 main :: IO ()
 main = run $ app
@@ -106,4 +127,5 @@ main = run $ app
   , SB6.startup = Main.startup
   , SB6.render = Main.render
   , SB6.shutdown = Main.shutdown
+  , SB6.onKey = Main.onKey
   }
