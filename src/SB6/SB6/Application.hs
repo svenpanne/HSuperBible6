@@ -3,7 +3,8 @@ module SB6.Application (
   Application(..), app,
   AppInfo(..), appInfo,
   run,
-  extensionSupported
+  extensionSupported,
+  SpecialKey(..), KeyState(..), MouseButton(..)
 ) where
 
 #if !MIN_VERSION_base(4,8,0)
