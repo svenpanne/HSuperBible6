@@ -80,7 +80,7 @@ app = Application
 
 data AppInfo = AppInfo
   { title :: String
-  , windowSize :: Size
+  , initialWindowSize :: Size
   , version :: (Int, Int)
   , numSamples :: Int  -- renamed from 'samples' to avoid a clash with OpenGL
   , fullscreen :: Bool
@@ -93,7 +93,7 @@ data AppInfo = AppInfo
 appInfo :: AppInfo
 appInfo = AppInfo
   { title = "SuperBible6 Example"
-  , SB6.Application.windowSize  = Size 800 600
+  , SB6.Application.initialWindowSize  = Size 800 600
   , version = if os `elem` [ "darwin", "osx" ] then (3, 2) else (4, 3)
   , numSamples = 0
   , fullscreen  = False
@@ -112,8 +112,8 @@ run theApp = do
   theAppInfo <- handleArgs args =<< SB6.Application.init theApp
   let numOpt f fld = opt (f . fromIntegral . fld $ theAppInfo) ((> 0) . fld)
       opt val predicate = if predicate theAppInfo then [ val ] else []
-      width (Size w _) = w
-      height (Size _ h) = h
+      width = (\(Size w _) -> w) . SB6.Application.initialWindowSize
+      height = (\(Size _ h) -> h) . SB6.Application.initialWindowSize
   initialDisplayMode $=
     [ RGBAMode, WithDepthBuffer, DoubleBuffered ] ++
     numOpt WithSamplesPerPixel numSamples ++
@@ -125,12 +125,12 @@ run theApp = do
     then do
       gameModeCapabilities $=
         [ Where' GameModeBitsPerPlane IsEqualTo 32 ] ++
-        numOpt (Where' GameModeWidth IsEqualTo) (width . SB6.Application.windowSize) ++
-        numOpt (Where' GameModeHeight IsEqualTo) (height . SB6.Application.windowSize)
+        numOpt (Where' GameModeWidth IsEqualTo) width ++
+        numOpt (Where' GameModeHeight IsEqualTo) height
       void enterGameMode
       windowTitle $= title theAppInfo
     else do
-      initialWindowSize $= SB6.Application.windowSize theAppInfo
+      GLUT.initialWindowSize $= SB6.Application.initialWindowSize theAppInfo
       void . createWindow . title $ theAppInfo
   unless (SB6.Application.cursor theAppInfo) (GLUT.cursor $= None)
   swapInterval $ if vsync theAppInfo then 1 else 0
@@ -235,10 +235,10 @@ parseWith theAppInfo = AppInfo
               <> defaultValueWith show title
               <> help "Set window title")
   <*> option (pair Size nonNegative 'x' nonNegative)
-             (long "window-size"
+             (long "initial-window-size"
            <> metavar "WxH"
-           <> defaultValueWith showSize SB6.Application.windowSize
-           <> help "Set window size")
+           <> defaultValueWith showSize SB6.Application.initialWindowSize
+           <> help "Set initial window size")
   <*> option (pair (,) nonNegative '.' nonNegative)
              (long "version"
            <> metavar "MAJOR.MINOR"
