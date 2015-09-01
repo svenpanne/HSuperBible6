@@ -175,10 +175,10 @@ keyboardMouseCB theApp state key keyState _modifiers _position =
 closeCB :: Application s -> s -> IO ()
 closeCB theApp state = do
   shutdown theApp state
-  gma <- get gameModeActive
-  when gma leaveGameMode
   displayCallback $= return ()
   closeCallback $= Nothing
+  gma <- get gameModeActive
+  when gma leaveGameMode
   -- Exiting is a bit tricky due to a freeglut bug: leaveMainLoop just sets a
   -- flag that the next iteration of the main loop should exit, but the current
   -- iteration will handle all events first and then go to sleep until there is
