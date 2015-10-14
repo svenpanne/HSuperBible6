@@ -22,7 +22,7 @@ library
   build-depends:
     GLUT                 >= 2.7    && < 2.8,
     OpenGL               >= 2.13.1 && < 2.14,
-    OpenGLRaw            >= 2.5    && < 2.6,
+    OpenGLRaw            >= 2.5    && < 2.7,
     array                >= 0.1    && < 0.6,
     base                 >= 3      && < 5,
     binary               >= 0.5    && < 0.8,
