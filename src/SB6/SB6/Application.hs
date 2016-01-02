@@ -23,7 +23,11 @@ import System.IO ( hPutStrLn, stderr )
 import System.Info ( os )
 
 import Graphics.UI.GLUT as GLUT
+#if MIN_VERSION_OpenGLRaw(3,0,0)
+import Graphics.GL ( getProcAddress )
+#else
 import Graphics.Rendering.OpenGL.Raw ( getProcAddress )
+#endif
 
 --------------------------------------------------------------------------------
 
