@@ -88,12 +88,6 @@ before_script:
  - cabal update
  - ghc --version
  - ghc-pkg list
- - pushd ..
- - git clone --depth=100 https://github.com/pcapriotti/optparse-applicative.git
- - cd optparse-applicative
- - cabal install --enable-documentation
- - popd
- - ghc-pkg list
 
 script:
  - cabal install --enable-documentation --flags=BuildExamples `test "$GHCVER" \> "7.3" && echo "--jobs"`
