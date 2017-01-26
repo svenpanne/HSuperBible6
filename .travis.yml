@@ -56,7 +56,7 @@ matrix:
           - freeglut3-dev
           - cabal-install-1.22
           - ghc-7.10.3
-   - env: CABALVER=1.24 GHCVER=8.0.1
+   - env: CABALVER=1.24 GHCVER=8.0.2
      addons:
        apt:
          sources:
@@ -64,7 +64,7 @@ matrix:
          packages:
           - freeglut3-dev
           - cabal-install-1.24
-          - ghc-8.0.1
+          - ghc-8.0.2
    - env: CABALVER=head GHCVER=head
      addons:
        apt:
