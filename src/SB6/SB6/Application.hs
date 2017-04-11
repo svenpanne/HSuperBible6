@@ -31,7 +31,11 @@ import Graphics.Rendering.OpenGL.Raw ( getProcAddress )
 
 --------------------------------------------------------------------------------
 
-#if !MIN_VERSION_base(4,5,0)
+#if MIN_VERSION_optparse_applicative(0,13,0)
+import Data.Semigroup ( (<>) )
+#elif MIN_VERSION_base(4,5,0)
+import Data.Monoid ( (<>) )
+#else
 import Data.Monoid ( Monoid )
 
 infixr 6 <>
