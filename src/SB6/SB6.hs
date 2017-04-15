@@ -4,4 +4,5 @@ module SB6 (
 ) where
 
 import Graphics.Rendering.OpenGL
-import SB6.Application
+-- The hiding is needed to avoid an incorrect warning with GHC 7.0.4.
+import SB6.Application hiding (extensionSupported)
