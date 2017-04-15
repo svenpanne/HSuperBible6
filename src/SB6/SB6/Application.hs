@@ -7,9 +7,6 @@ module SB6.Application (
   SpecialKey(..), KeyState(..), MouseButton(..)
 ) where
 
-#if !MIN_VERSION_base(4,8,0)
-import Control.Applicative( (<$>) )
-#endif
 import Control.Monad ( forM_, when, unless, void )
 import Control.Monad.Trans.Reader ( local )
 import Data.List ( isPrefixOf )
