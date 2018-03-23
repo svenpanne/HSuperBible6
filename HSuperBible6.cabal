@@ -1,5 +1,5 @@
 name: HSuperBible6
-version: 0.1.0.2
+version: 0.1.0.3
 synopsis: Examples from the OpenGL SuperBible (6th ed.) in Haskell
 description: All the examples from the OpenGL SuperBible (6th ed.) in Haskell.
 copyright: Copyright (C) 2015-2018 Sven Panne
