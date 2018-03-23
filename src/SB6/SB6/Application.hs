@@ -85,7 +85,7 @@ appInfo :: AppInfo
 appInfo = AppInfo
   { title = "SuperBible6 Example"
   , SB6.Application.initialWindowSize  = Size 800 600
-  , version = if os `elem` [ "darwin", "osx" ] then (3, 2) else (4, 3)
+  , version = if os `elem` [ "darwin", "osx" ] then (4, 1) else (4, 3)
   , numSamples = 0
   , fullscreen  = False
   , vsync  = False
